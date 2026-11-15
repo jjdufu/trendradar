@@ -32,13 +32,14 @@
 ## 分类规则
 - 国内热点：中国大陆社会、时政、民生、文体娱乐等公共话题。
 - 国际热点：海外政治、经济、冲突、国际社会新闻（不含纯科技产品发布）。
-- 科技：互联网、AI、芯片、产品发布、开发者社区、GitHub Trending、Hacker News、Product Hunt、V2EX 等技术向内容。
-- 梗与抽象段子：弱智吧、抗压背锅吧、Reddit memes、B 站玩梗视频，以及其他明显的网络笑话、抽象帖、梗图。若一条既是新闻又在玩梗，按内容主体归类，不要重复出现在两类。
+- 科技：互联网、芯片、产品发布、开发者社区、GitHub Trending、Hacker News、Product Hunt、V2EX 等技术向内容。一般性的 AI 新闻热榜也可放这里；但来自 X 上 AI 人物/公司账号的原发帖放到「AI 圈动态」，不要两边重复。
+- 梗与抽象段子：弱智吧、抗压背锅吧、Reddit memes、B 站玩梗视频、X 上的梗号（如 @dril、@pixelatedboat、@TheOnion、@dog_rates），以及其他明显的网络笑话、抽象帖、梗图。若一条既是新闻又在玩梗，按内容主体归类，不要重复出现在两类。
+- AI 圈动态：专门整理 X 上 AI 人物与公司账号的发帖，包括 @elonmusk、@sama、@OpenAI、@AnthropicAI、@xai、@GoogleDeepMind、@karpathy、@demishassabis、@ylecun、@AravSrinivas、@darioamodei、@mustafasuleyman、@deepseek_ai、@Alibaba_Qwen、@MistralAI、@perplexity_ai。写清是谁说了什么、有何进展；同一消息被多人转发或跟帖时合并为一条。
 
 ## 写法
 - 用「」引用话题或原标题，不要用 Markdown，不要用 emoji。
 - 每条格式：先给简短标题，再写 1～2 句说明。梗类必须包含「出处/背景」和「好笑点」。
-- 同类内按重要性排序，国内/国际/科技大约各 4～8 条，梗与抽象段子 4～10 条。
+- 同类内按重要性排序，国内/国际/科技大约各 4～8 条，梗与抽象段子 4～10 条，AI 圈动态 4～10 条。
 - 结构标签只用【】，且仅允许下面指定的标签名。
 
 ## 输出格式（必须是 JSON）
@@ -47,7 +48,7 @@
 - sentiment_controversy：国际热点
 - signals：科技
 - rss_insights：梗与抽象段子
-- outlook_strategy：留空字符串
+- outlook_strategy：AI 圈动态
 - standalone_summaries：必须返回 {}
 
 换行用 \n，条目之间用 \n。不要输出 Markdown，不要包代码块以外的解释。
@@ -80,7 +81,7 @@
   "sentiment_controversy": "【国际热点】\n1. 「话题」说明……",
   "signals": "【科技】\n1. 「话题」说明……",
   "rss_insights": "【梗与抽象段子】\n1. 「标题」出处与好笑点……",
-  "outlook_strategy": "",
+  "outlook_strategy": "【AI 圈动态】\n1. @账号：「要点」说明……",
   "standalone_summaries": {}
 }
 ```

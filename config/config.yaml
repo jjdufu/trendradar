@@ -180,26 +180,91 @@ rss:
       url: "https://www.reddit.com/r/memes/top/.rss?t=day"
 
     # X/Twitter via in-job RSSHub（/twitter/user/:id，文档：https://docs.rsshub.app/routes/twitter）
-    # includeRts=0、count/limit=8，降低对账号的请求压力；工作流每 3 小时跑一次
+    # includeRts=0、count/limit=5，拉长间隔以降低对账号的请求压力；工作流每 3 小时跑一次
     - id: "x-dril"
       name: "X @dril"
-      url: "http://localhost:1200/twitter/user/dril/includeRts=0&count=8?limit=8"
+      url: "http://localhost:1200/twitter/user/dril/includeRts=0&count=5?limit=5"
 
     - id: "x-pixelatedboat"
       name: "X @pixelatedboat"
-      url: "http://localhost:1200/twitter/user/pixelatedboat/includeRts=0&count=8?limit=8"
+      url: "http://localhost:1200/twitter/user/pixelatedboat/includeRts=0&count=5?limit=5"
 
     - id: "x-theonion"
       name: "X @TheOnion"
-      url: "http://localhost:1200/twitter/user/TheOnion/includeRts=0&count=8?limit=8"
+      url: "http://localhost:1200/twitter/user/TheOnion/includeRts=0&count=5?limit=5"
 
     - id: "x-dog-rates"
       name: "X @dog_rates"
-      url: "http://localhost:1200/twitter/user/dog_rates/includeRts=0&count=8?limit=8"
+      url: "http://localhost:1200/twitter/user/dog_rates/includeRts=0&count=5?limit=5"
 
     - id: "x-popcrave"
       name: "X @PopCrave"
-      url: "http://localhost:1200/twitter/user/PopCrave/includeRts=0&count=8?limit=8"
+      url: "http://localhost:1200/twitter/user/PopCrave/includeRts=0&count=5?limit=5"
+
+    # X：AI 圈人物/公司（每源 5 条，排除转推）
+    - id: "x-elonmusk"
+      name: "X @elonmusk"
+      url: "http://localhost:1200/twitter/user/elonmusk/includeRts=0&count=5?limit=5"
+
+    - id: "x-sama"
+      name: "X @sama"
+      url: "http://localhost:1200/twitter/user/sama/includeRts=0&count=5?limit=5"
+
+    - id: "x-openai"
+      name: "X @OpenAI"
+      url: "http://localhost:1200/twitter/user/OpenAI/includeRts=0&count=5?limit=5"
+
+    - id: "x-anthropic"
+      name: "X @AnthropicAI"
+      url: "http://localhost:1200/twitter/user/AnthropicAI/includeRts=0&count=5?limit=5"
+
+    - id: "x-xai"
+      name: "X @xai"
+      url: "http://localhost:1200/twitter/user/xai/includeRts=0&count=5?limit=5"
+
+    - id: "x-deepmind"
+      name: "X @GoogleDeepMind"
+      url: "http://localhost:1200/twitter/user/GoogleDeepMind/includeRts=0&count=5?limit=5"
+
+    - id: "x-karpathy"
+      name: "X @karpathy"
+      url: "http://localhost:1200/twitter/user/karpathy/includeRts=0&count=5?limit=5"
+
+    - id: "x-demishassabis"
+      name: "X @demishassabis"
+      url: "http://localhost:1200/twitter/user/demishassabis/includeRts=0&count=5?limit=5"
+
+    - id: "x-ylecun"
+      name: "X @ylecun"
+      url: "http://localhost:1200/twitter/user/ylecun/includeRts=0&count=5?limit=5"
+
+    - id: "x-aravsrinivas"
+      name: "X @AravSrinivas"
+      url: "http://localhost:1200/twitter/user/AravSrinivas/includeRts=0&count=5?limit=5"
+
+    - id: "x-darioamodei"
+      name: "X @darioamodei"
+      url: "http://localhost:1200/twitter/user/darioamodei/includeRts=0&count=5?limit=5"
+
+    - id: "x-mustafasuleyman"
+      name: "X @mustafasuleyman"
+      url: "http://localhost:1200/twitter/user/mustafasuleyman/includeRts=0&count=5?limit=5"
+
+    - id: "x-deepseek"
+      name: "X @deepseek_ai"
+      url: "http://localhost:1200/twitter/user/deepseek_ai/includeRts=0&count=5?limit=5"
+
+    - id: "x-qwen"
+      name: "X @Alibaba_Qwen"
+      url: "http://localhost:1200/twitter/user/Alibaba_Qwen/includeRts=0&count=5?limit=5"
+
+    - id: "x-mistral"
+      name: "X @MistralAI"
+      url: "http://localhost:1200/twitter/user/MistralAI/includeRts=0&count=5?limit=5"
+
+    - id: "x-perplexity"
+      name: "X @perplexity_ai"
+      url: "http://localhost:1200/twitter/user/perplexity_ai/includeRts=0&count=5?limit=5"
 
     - id: "ruanyifeng"
       name: "阮一峰的网络日志"
@@ -342,6 +407,22 @@ display:
       - x-theonion
       - x-dog-rates
       - x-popcrave
+      - x-elonmusk
+      - x-sama
+      - x-openai
+      - x-anthropic
+      - x-xai
+      - x-deepmind
+      - x-karpathy
+      - x-demishassabis
+      - x-ylecun
+      - x-aravsrinivas
+      - x-darioamodei
+      - x-mustafasuleyman
+      - x-deepseek
+      - x-qwen
+      - x-mistral
+      - x-perplexity
     max_items: 8                                 # 每个源最多展示条数，邮件附录保持精简
 
 
@@ -569,7 +650,7 @@ advanced:
 
   # RSS 设置（间隔加长，减轻 X/Twitter 等源对账号的压力）
   rss:
-    request_interval: 3000            # 请求间隔（毫秒）
+    request_interval: 5000            # 请求间隔（毫秒）；X 源较多，拉开请求以免触发限流
     timeout: 25                       # 请求超时（秒）；Twitter 路由可能较慢
     use_proxy: false                  # 是否使用代理（true=启用, false=不使用）
     proxy_url: ""                     # RSS 专属代理（留空则使用 crawler.default_proxy）

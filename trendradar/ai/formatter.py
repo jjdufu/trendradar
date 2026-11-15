@@ -120,7 +120,7 @@ def _render_ai_analysis_markdown_like(
 
     if result.outlook_strategy:
         lines.extend(
-            ["**补充说明**", _format_list_content(result.outlook_strategy), ""]
+            ["**AI 圈动态**", _format_list_content(result.outlook_strategy), ""]
         )
 
     if result.standalone_summaries:
@@ -183,7 +183,7 @@ def render_ai_analysis_dingtalk(result: AIAnalysisResult) -> str:
 
     if result.outlook_strategy:
         lines.extend(
-            ["#### 补充说明", _format_list_content(result.outlook_strategy), ""]
+            ["#### AI 圈动态", _format_list_content(result.outlook_strategy), ""]
         )
 
     if result.standalone_summaries:
@@ -218,7 +218,7 @@ def render_ai_analysis_plain(result: AIAnalysisResult) -> str:
         lines.extend(["[梗与抽象段子]", _format_list_content(result.rss_insights), ""])
 
     if result.outlook_strategy:
-        lines.extend(["[补充说明]", _format_list_content(result.outlook_strategy), ""])
+        lines.extend(["[AI 圈动态]", _format_list_content(result.outlook_strategy), ""])
 
     if result.standalone_summaries:
         summaries_text = _format_standalone_summaries(result.standalone_summaries)
@@ -255,7 +255,7 @@ def render_ai_analysis_telegram(result: AIAnalysisResult) -> str:
         lines.extend(["<b>梗与抽象段子</b>", _escape_html(_format_list_content(result.rss_insights)), ""])
 
     if result.outlook_strategy:
-        lines.extend(["<b>补充说明</b>", _escape_html(_format_list_content(result.outlook_strategy)), ""])
+        lines.extend(["<b>AI 圈动态</b>", _escape_html(_format_list_content(result.outlook_strategy)), ""])
 
     if result.standalone_summaries:
         summaries_text = _format_standalone_summaries(result.standalone_summaries)
@@ -344,7 +344,7 @@ def render_ai_analysis_html_rich(result: AIAnalysisResult) -> str:
         content_html = _escape_html(content).replace("\n", "<br>")
         ai_html += f"""
                     <div class="ai-block">
-                        <div class="ai-block-title">补充说明</div>
+                        <div class="ai-block-title">AI 圈动态</div>
                         <div class="ai-block-content">{content_html}</div>
                     </div>"""
 

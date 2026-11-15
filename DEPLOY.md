@@ -48,4 +48,4 @@
 ## X/Twitter 源
 
 - Secret：`TWITTER_AUTH_TOKEN`（X 网页登录后的 `auth_token` cookie）。只注入 RSSHub 服务容器，不要写进仓库或打印到日志。
-- 路由：`/twitter/user/<handle>`（见 https://docs.rsshub.app/routes/twitter），每源最多 8 条，排除转推，RSS 请求间隔 3 秒。配合 3 小时一次的定时，降低对账号的压力。
+- 路由：`/twitter/user/<handle>`（见 https://docs.rsshub.app/routes/twitter）。包含梗号（dril、pixelatedboat、TheOnion、dog_rates、PopCrave）以及 Elon Musk 与主要 AI 人物/公司账号。每源最多 5 条、排除转推，RSS 请求间隔 5 秒，配合 3 小时一次的定时，降低对账号的限流风险。
