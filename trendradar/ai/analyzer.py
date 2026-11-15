@@ -133,6 +133,7 @@ class AIAnalyzer:
         platforms: Optional[List[str]] = None,
         keywords: Optional[List[str]] = None,
         standalone_data: Optional[Dict] = None,
+        sent_titles: Optional[List[str]] = None,
     ) -> AIAnalysisResult:
         """
         执行 AI 分析
@@ -177,7 +178,8 @@ class AIAnalyzer:
         prepared = self._prepare_news_content(stats, rss_stats)
         total_news = prepared.hotlist_total + prepared.rss_total
 
-        if not prepared.news_content and not prepared.rss_content:
+        has_standalone = bool(self.include_standalone and standalone_data)
+        if not prepared.news_content and not prepared.rss_content and not has_standalone:
             return AIAnalysisResult(
                 success=False,
                 skipped=True,
@@ -215,6 +217,12 @@ class AIAnalyzer:
         if self.include_standalone and standalone_data:
             standalone_content, standalone_count = self._prepare_standalone_content(standalone_data)
         user_prompt = user_prompt.replace("{standalone_content}", standalone_content)
+
+        from trendradar.report.sent_history import format_sent_titles_prompt
+        sent_block = format_sent_titles_prompt(sent_titles)
+        user_prompt = user_prompt.replace("{sent_titles}", sent_block)
+        if sent_titles:
+            print(f"[去重] 已向 AI 传入最近 {len(sent_titles)} 条已发送标题")
 
         if self.debug:
             print("\n" + "=" * 80)

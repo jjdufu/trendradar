@@ -312,6 +312,7 @@ class NewsAnalyzer:
         current_results: Optional[Dict] = None,
         schedule: ResolvedSchedule = None,
         standalone_data: Optional[Dict] = None,
+        sent_titles: Optional[List[str]] = None,
     ) -> Optional[AIAnalysisResult]:
         """执行 AI 分析"""
         analysis_config = self.ctx.config.get("AI_ANALYSIS", {})
@@ -404,6 +405,7 @@ class NewsAnalyzer:
                 platforms=platforms,
                 keywords=keywords,
                 standalone_data=ai_standalone,
+                sent_titles=sent_titles,
             )
 
             # 设置 AI 分析使用的模式
@@ -731,17 +733,25 @@ class NewsAnalyzer:
                 self.ctx.rank_threshold,
             )
 
+        # 跨 run 去重：丢掉近 3 日已发送的条目，并把近期标题交给 AI
+        from trendradar.report.sent_history import apply_cross_run_dedupe, titles_for_ai
+        stats, standalone_data, rss_items, rss_new_items = apply_cross_run_dedupe(
+            stats, standalone_data, rss_items, rss_new_items,
+        )
+        sent_titles = titles_for_ai()
+
         # AI 分析（如果启用，用于 HTML 报告）
         ai_result = None
         ai_config = self.ctx.config.get("AI_ANALYSIS", {})
-        if ai_config.get("ENABLED", False) and stats:
+        if ai_config.get("ENABLED", False) and (stats or standalone_data or rss_items):
             # 获取模式策略来确定报告类型
             mode_strategy = self._get_mode_strategy()
             report_type = mode_strategy["report_type"]
             ai_result = self._run_ai_analysis(
                 stats, rss_items, mode, report_type, id_to_name,
                 current_results=data_source, schedule=schedule,
-                standalone_data=standalone_data
+                standalone_data=standalone_data,
+                sent_titles=sent_titles,
             )
 
         # 翻译 RSS 和独立展示区内容（如果启用）— 在 HTML 生成前执行，确保网页版也能展示翻译内容
@@ -866,10 +876,12 @@ class NewsAnalyzer:
             if ai_result is None:
                 ai_config = cfg.get("AI_ANALYSIS", {})
                 if ai_config.get("ENABLED", False):
+                    from trendradar.report.sent_history import titles_for_ai as _titles_for_ai
                     ai_result = self._run_ai_analysis(
                         stats, rss_items, mode, report_type, id_to_name,
                         current_results=current_results, schedule=schedule,
                         standalone_data=standalone_data,
+                        sent_titles=_titles_for_ai(),
                     )
 
             # 准备报告数据

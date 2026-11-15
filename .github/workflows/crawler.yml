@@ -167,9 +167,18 @@ jobs:
           path: .xai/rt.enc
           key: xai-rt-${{ github.run_id }}-${{ github.run_attempt }}
 
+      - name: Restore sent history cache
+        if: success()
+        uses: actions/cache/restore@v4
+        with:
+          path: .sent-history/history.enc
+          key: sent-history-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: sent-history-
+
       - name: Run crawler
         if: success()
         env:
+          XAI_CACHE_PASSPHRASE: ${{ secrets.XAI_CACHE_PASSPHRASE }}
           FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -199,6 +208,13 @@ jobs:
           S3_REGION: ${{ secrets.S3_REGION }}
           GITHUB_ACTIONS: true
         run: uv run python -m trendradar
+
+      - name: Save sent history cache
+        if: success() && hashFiles('.sent-history/history.enc') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: .sent-history/history.enc
+          key: sent-history-${{ github.run_id }}-${{ github.run_attempt }}
 
       # --------------------------------------------------------------------------------
       # ☁️ CLOUDFLARE PAGES DEPLOY / 部署到 Cloudflare Pages（可选）

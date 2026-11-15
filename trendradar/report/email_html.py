@@ -314,10 +314,9 @@ def _item_row(title: str, url: str, line: str, meta: str = "") -> str:
 
 
 def _section(sid: str, title: str, rows_html: str, empty_note: str = "") -> str:
-    inner = rows_html or (
-        '<tr><td style="padding:7px 0;font-family:' + FONT + ";font-size:15px;color:" +
-        C_MUTED + ';">' + _esc(empty_note or "本轮暂无突出条目") + "</td></tr>"
-    )
+    if not rows_html:
+        return ""
+    inner = rows_html
     return (
         '<table role="presentation" class="panel" id="' + _esc(sid) +
         '" width="100%" cellpadding="0" cellspacing="0" border="0" '
@@ -354,18 +353,21 @@ def _rows_from_digest(
     items: List[Tuple[str, str, List[str]]],
     standalone_data: Optional[Dict],
     url_map: Dict[str, str],
-) -> str:
+) -> Tuple[str, List[Dict[str, str]]]:
     rows = []
+    recs: List[Dict[str, str]] = []
     for title, body, sources in items:
         url = _find_item_url(standalone_data, title) or (
             _lookup_source_url(sources[0], url_map) if sources else ""
         )
         meta = " / ".join(sources) if sources else ""
         rows.append(_item_row(title, url, body, meta))
-    return "".join(rows)
+        if title or url:
+            recs.append({"title": title, "url": url})
+    return "".join(rows), recs
 
 
-def _github_rows(ai_items: List[Tuple[str, str, List[str]]], standalone_data: Optional[Dict]) -> str:
+def _github_rows(ai_items: List[Tuple[str, str, List[str]]], standalone_data: Optional[Dict]) -> Tuple[str, List[Dict[str, str]]]:
     today_map = _github_stars_today_map()
     feed = _find_feed(standalone_data, "github-trending-today", "github trending", "github")
     line_by_repo: Dict[str, str] = {}
@@ -374,8 +376,10 @@ def _github_rows(ai_items: List[Tuple[str, str, List[str]]], standalone_data: Op
         if repo:
             line_by_repo[repo.lower()] = body or ""
     rows = []
+    recs: List[Dict[str, str]] = []
     source_items = (feed.get("items") if feed else []) or []
-    if source_items:
+    # If the GitHub feed exists (even when emptied by dedupe), do not fall back to AI leftovers.
+    if feed is not None:
         for it in source_items:
             title = (it.get("title") or "").strip()
             url = (it.get("url") or "").strip()
@@ -387,6 +391,8 @@ def _github_rows(ai_items: List[Tuple[str, str, List[str]]], standalone_data: Op
             meta = _stars_label(it, repo, today_map)
             display = repo or re.sub(r"\s+", "", title)
             rows.append(_item_row(display, url, line, meta))
+            if display or url:
+                recs.append({"title": display, "url": url})
     else:
         for title, body, _src in ai_items:
             repo = _normalize_repo(title) or title
@@ -395,17 +401,20 @@ def _github_rows(ai_items: List[Tuple[str, str, List[str]]], standalone_data: Op
                 url = "https://github.com/" + repo
             meta = _stars_label({}, repo, today_map)
             rows.append(_item_row(repo, url, body, meta))
-    return "".join(rows)
+            if repo or url:
+                recs.append({"title": repo, "url": url})
+    return "".join(rows), recs
 
 
-def _tiktok_rows(ai_items: List[Tuple[str, str, List[str]]], standalone_data: Optional[Dict]) -> str:
+def _tiktok_rows(ai_items: List[Tuple[str, str, List[str]]], standalone_data: Optional[Dict]) -> Tuple[str, List[Dict[str, str]]]:
     feed = _find_feed(standalone_data, "tiktok-overseas", "tiktok 海外", "tiktok")
     line_by_tag: Dict[str, str] = {}
     for title, body, _src in ai_items:
         line_by_tag[title.lstrip("#").lower()] = body or title
     rows = []
+    recs: List[Dict[str, str]] = []
     source_items = (feed.get("items") if feed else []) or []
-    if source_items:
+    if feed is not None:
         for it in source_items:
             title = (it.get("title") or "").strip()
             url = (it.get("url") or "").strip()
@@ -417,17 +426,22 @@ def _tiktok_rows(ai_items: List[Tuple[str, str, List[str]]], standalone_data: Op
                 meta = meta.split(" · ")[0]
             display = title if title.startswith("#") else ("#" + title)
             rows.append(_item_row(display, url, line, meta))
+            if display or url:
+                recs.append({"title": display, "url": url})
     else:
         for title, body, sources in ai_items:
             url = _find_item_url(standalone_data, title)
             rows.append(_item_row(title, url, body, " / ".join(sources)))
-    return "".join(rows)
+            if title or url:
+                recs.append({"title": title, "url": url})
+    return "".join(rows), recs
 
 
-def _x_rows(ai_items: List[Tuple[str, str, List[str]]], standalone_data: Optional[Dict]) -> str:
+def _x_rows(ai_items: List[Tuple[str, str, List[str]]], standalone_data: Optional[Dict]) -> Tuple[str, List[Dict[str, str]]]:
     if ai_items:
         return _rows_from_digest(ai_items, standalone_data, _source_url_map(standalone_data))
     rows = []
+    recs: List[Dict[str, str]] = []
     for src in _iter_feeds(standalone_data):
         fid = str(src.get("id") or "")
         if fid not in _X_HOT_FEED_IDS:
@@ -437,20 +451,45 @@ def _x_rows(ai_items: List[Tuple[str, str, List[str]]], standalone_data: Optiona
             continue
         it = items[0]
         handle = (src.get("name") or fid).replace("X ", "")
-        rows.append(_item_row(handle, it.get("url") or "", it.get("title") or "", ""))
-    return "".join(rows)
+        url = it.get("url") or ""
+        title = it.get("title") or ""
+        rows.append(_item_row(handle, url, title, ""))
+        recs.append({"title": title or handle, "url": url})
+    return "".join(rows), recs
 
 
-def render_email_html(
+def _filter_digest_already_sent(
+    items: List[Tuple[str, str, List[str]]],
+    standalone_data: Optional[Dict],
+    url_map: Dict[str, str],
+) -> List[Tuple[str, str, List[str]]]:
+    try:
+        from trendradar.report.sent_history import is_sent
+    except Exception:
+        return items
+    kept: List[Tuple[str, str, List[str]]] = []
+    for title, body, sources in items:
+        url = _find_item_url(standalone_data, title) or (
+            _lookup_source_url(sources[0], url_map) if sources else ""
+        )
+        if is_sent(title, url or ""):
+            continue
+        kept.append((title, body, sources))
+    return kept
+
+
+def _build_email_parts(
     *,
-    report_type: str = "当前榜单",
-    generated_at: Optional[datetime] = None,
-    ai_analysis: Any = None,
-    standalone_data: Optional[Dict] = None,
-) -> str:
+    report_type: str,
+    generated_at: Optional[datetime],
+    ai_analysis: Any,
+    standalone_data: Optional[Dict],
+) -> Tuple[str, str, str, List[Dict[str, str]]]:
+    """Return (tabs_html, sixty_html, sections_html, sent_items)."""
     when_str = _fmt_time(generated_at)
     url_map = _source_url_map(standalone_data)
     has_digest = bool(ai_analysis and getattr(ai_analysis, "success", False))
+    sent: List[Dict[str, str]] = []
 
     def field(*names: str) -> str:
         if not has_digest:
@@ -461,19 +500,9 @@ def render_email_html(
                 return val
         return ""
 
-    tab_rows = []
-    for row in _TABS:
-        pills = "".join(_pill(sid, lab) for sid, lab in row)
-        tab_rows.append(
-            '<tr><td style="padding:0;font-family:' + FONT +
-            ';font-size:0;line-height:0;">' + pills + "</td></tr>"
-        )
-    tabs_html = (
-        '<table role="presentation" class="tabs" width="100%" cellpadding="0" cellspacing="0" border="0" '
-        'style="border-collapse:collapse;margin:0 0 8px;">' + "".join(tab_rows) + "</table>"
+    sixty_items = _filter_digest_already_sent(
+        _parse_digest_items(field("sixty")), standalone_data, url_map
     )
-
-    sixty_items = _parse_digest_items(field("sixty"))
     sixty_rows = []
     for i, (title, body, sources) in enumerate(sixty_items, 1):
         if body and body not in title and len(title) <= 40:
@@ -503,14 +532,10 @@ def render_email_html(
             ";font-size:15px;line-height:1.5;color:" + C_BODY +
             ';font-weight:400;">' + body_html + meta + "</td></tr>"
         )
-    if not sixty_rows:
-        note = "本期速览未生成。" if not has_digest else "本轮暂无 60 秒摘要。"
-        sixty_rows.append(
-            '<tr><td colspan="2" style="padding:3px 0;font-family:' + FONT +
-            ";font-size:15px;color:" + C_MUTED + ';">' + _esc(note) + "</td></tr>"
-        )
+        if title or url:
+            sent.append({"title": title, "url": url})
 
-    sixty_html = (
+    header = (
         '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" '
         'style="border-collapse:collapse;margin:0 0 6px;">'
         "<tr><td style=\"padding:0 0 8px;font-family:" + FONT + ';">'
@@ -519,22 +544,78 @@ def render_email_html(
         '<div style="font-size:12px;line-height:1.4;color:' + C_MUTED +
         ';padding-top:2px;">' + _esc(report_type) + " · " + _esc(when_str) + "</div>"
         "</td></tr></table>"
-        '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" '
-        'style="border-collapse:collapse;margin:0 0 16px;">' + "".join(sixty_rows) + "</table>"
     )
+    if sixty_rows:
+        sixty_html = (
+            header +
+            '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" '
+            'style="border-collapse:collapse;margin:0 0 16px;">' + "".join(sixty_rows) + "</table>"
+        )
+    else:
+        # Keep the dated header so the email still has a title even if 60s is empty.
+        sixty_html = header
 
-    sections_html = "".join([
-        _section("github", "GitHub 每日热门项目", _github_rows(_parse_digest_items(field("github")), standalone_data)),
-        _section("x", "X 平台热点", _x_rows(_parse_digest_items(field("x_hot", "x")), standalone_data)),
-        _section("memes", "抽象段子", _rows_from_digest(_parse_digest_items(field("rss_insights")), standalone_data, url_map)),
-        _section("tiktok", "TikTok 热点", _tiktok_rows(_parse_digest_items(field("tiktok")), standalone_data)),
-        _section("baidu", "百度热点", _rows_from_digest(_parse_digest_items(field("baidu")), standalone_data, url_map)),
-        _section("domestic", "国内热点", _rows_from_digest(_parse_digest_items(field("core_trends")), standalone_data, url_map)),
-        _section("international", "国际热点", _rows_from_digest(_parse_digest_items(field("sentiment_controversy")), standalone_data, url_map)),
-        _section("politics", "时政", _rows_from_digest(_parse_digest_items(field("politics")), standalone_data, url_map)),
-        _section("ai", "AI 圈动态", _rows_from_digest(_parse_digest_items(field("outlook_strategy")), standalone_data, url_map)),
-        _section("tech", "科技", _rows_from_digest(_parse_digest_items(field("signals")), standalone_data, url_map)),
-    ])
+    catalog = [
+        ("github", "GitHub 每日热门项目", _github_rows(_filter_digest_already_sent(_parse_digest_items(field("github")), standalone_data, url_map), standalone_data)),
+        ("x", "X 平台热点", _x_rows(_filter_digest_already_sent(_parse_digest_items(field("x_hot", "x")), standalone_data, url_map), standalone_data)),
+        ("memes", "抽象段子", _rows_from_digest(_filter_digest_already_sent(_parse_digest_items(field("rss_insights")), standalone_data, url_map), standalone_data, url_map)),
+        ("tiktok", "TikTok 热点", _tiktok_rows(_filter_digest_already_sent(_parse_digest_items(field("tiktok")), standalone_data, url_map), standalone_data)),
+        ("baidu", "百度热点", _rows_from_digest(_filter_digest_already_sent(_parse_digest_items(field("baidu")), standalone_data, url_map), standalone_data, url_map)),
+        ("domestic", "国内热点", _rows_from_digest(_filter_digest_already_sent(_parse_digest_items(field("core_trends")), standalone_data, url_map), standalone_data, url_map)),
+        ("international", "国际热点", _rows_from_digest(_filter_digest_already_sent(_parse_digest_items(field("sentiment_controversy")), standalone_data, url_map), standalone_data, url_map)),
+        ("politics", "时政", _rows_from_digest(_filter_digest_already_sent(_parse_digest_items(field("politics")), standalone_data, url_map), standalone_data, url_map)),
+        ("ai", "AI 圈动态", _rows_from_digest(_filter_digest_already_sent(_parse_digest_items(field("outlook_strategy")), standalone_data, url_map), standalone_data, url_map)),
+        ("tech", "科技", _rows_from_digest(_filter_digest_already_sent(_parse_digest_items(field("signals")), standalone_data, url_map), standalone_data, url_map)),
+    ]
+
+    visible: List[Tuple[str, str]] = []
+    section_chunks: List[str] = []
+    for sid, label, (rows_html, recs) in catalog:
+        section = _section(sid, label, rows_html)
+        if not section:
+            continue
+        visible.append((sid, label))
+        section_chunks.append(section)
+        sent.extend(recs)
+
+    # Keep original two-row grouping, dropping empty tabs; don't leave a blank row.
+    tab_rows = []
+    desired = [list(row) for row in _TABS]
+    visible_ids = {sid for sid, _ in visible}
+    labels = {sid: lab for sid, lab in visible}
+    for row in desired:
+        pills = "".join(_pill(sid, labels[sid]) for sid, _lab in row if sid in visible_ids)
+        if not pills:
+            continue
+        tab_rows.append(
+            '<tr><td style="padding:0;font-family:' + FONT +
+            ';font-size:0;line-height:0;">' + pills + "</td></tr>"
+        )
+    if tab_rows:
+        tabs_html = (
+            '<table role="presentation" class="tabs" width="100%" cellpadding="0" cellspacing="0" border="0" '
+            'style="border-collapse:collapse;margin:0 0 8px;">' + "".join(tab_rows) + "</table>"
+        )
+    else:
+        tabs_html = ""
+
+    return tabs_html, sixty_html, "".join(section_chunks), sent
+
+
+def render_email_html(
+    *,
+    report_type: str = "当前榜单",
+    generated_at: Optional[datetime] = None,
+    ai_analysis: Any = None,
+    standalone_data: Optional[Dict] = None,
+) -> str:
+    tabs_html, sixty_html, sections_html, _sent = _build_email_parts(
+        report_type=report_type,
+        generated_at=generated_at,
+        ai_analysis=ai_analysis,
+        standalone_data=standalone_data,
+    )
+    when_str = _fmt_time(generated_at)
 
     style = (
         "<style type=\"text/css\">"
@@ -576,6 +657,22 @@ def render_email_html(
         "<!--[if mso]></td></tr></table><![endif]-->\n"
         "</td></tr></table>\n</body>\n</html>\n"
     )
+
+
+def collect_email_sent_items(
+    ai_analysis: Any = None,
+    standalone_data: Optional[Dict] = None,
+    report_type: str = "当前榜单",
+    generated_at: Optional[datetime] = None,
+) -> List[Dict[str, str]]:
+    """Titles/URLs actually included in the email (for the sent-history cache)."""
+    _tabs, _sixty, _sections, sent = _build_email_parts(
+        report_type=report_type,
+        generated_at=generated_at,
+        ai_analysis=ai_analysis,
+        standalone_data=standalone_data,
+    )
+    return sent
 
 
 def write_email_html(dest: Path, **kwargs: Any) -> Path:

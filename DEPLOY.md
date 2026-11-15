@@ -55,3 +55,10 @@
 - 来源：TikTok Creative Center 公开接口 `POST https://ads.tiktok.com/CreativeOne/KnowledgeAPI/GetHashtagList`（无需登录）。匿名请求每个国家最多返回 3 条标签，因此默认查询 US/GB/CA/AU/DE/FR/JP/KR/BR/MX 并按标签去重，写入独立展示区「TikTok 海外热点」。
 - 旧版 `creative_radar_api` 已 deprecated / 匿名 40101；RSSHub 仅有需反爬的用户主页路由、没有可用的标签/热榜路由；newsnow 无 tiktok 源。视频榜 `CreativeCenterGetTopContentsList` 在未登录时大约只能拿到 4 条且偏带货，故未采用。
 - 配置见 `tiktok_trends`；抓取失败只打日志并跳过该栏，不影响其余邮件。GitHub Actions 若被 TikTok 拒绝数据中心 IP，该栏可能为空。
+
+## 跨 run 热点去重
+
+- 每次邮件发送成功后，把正文里实际出现的条目（规范化 URL + 标题哈希 + 时间戳；GitHub 另记 `owner/repo`）写入加密缓存 `.sent-history/history.enc`，只保留近 3 天。
+- 加密方式与 xAI refresh token 缓存相同：`openssl enc -aes-256-cbc -pbkdf2`，口令用 Secret `XAI_CACHE_PASSPHRASE`。工作流用 `actions/cache` 在 run 之间恢复/保存（key `sent-history-<run_id>-<attempt>`，恢复前缀 `sent-history-`）。
+- 下一轮发信前，精确匹配已发送的 URL / 标题（GitHub 按仓库名）会从各栏目剔除；空栏目及其 tab 不再出现在邮件里。近 150 条已发送标题会传给 AI，避免换标题写同一件事。缓存未命中或解密失败时按全新稿正常发送。
+- 仅在 SMTP 发送成功后追加历史；发送失败不更新缓存，以便下次补发。

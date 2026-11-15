@@ -837,7 +837,7 @@ class NotificationDispatcher:
             standalone_data=standalone_data,
         )
         print(f"邮件 HTML 已生成: {email_path}")
-        return send_to_email(
+        ok = send_to_email(
             from_email=self.config["EMAIL_FROM"],
             password=self.config["EMAIL_PASSWORD"],
             to_email=self.config["EMAIL_TO"],
@@ -847,4 +847,12 @@ class NotificationDispatcher:
             custom_smtp_port=self.config.get("EMAIL_SMTP_PORT", ""),
             get_time_func=self.get_time_func,
         )
+        if ok:
+            try:
+                from trendradar.report.email_html import collect_email_sent_items
+                from trendradar.report.sent_history import record_sent
+                record_sent(collect_email_sent_items(ai_analysis, standalone_data))
+            except Exception as exc:
+                print(f"[去重] 写入发送历史失败（不影响本次发送）: {type(exc).__name__}: {exc}")
+        return ok
 
