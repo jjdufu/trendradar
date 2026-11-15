@@ -100,6 +100,71 @@ jobs:
           echo "RSSHub failed to become healthy within 5 minutes"
           exit 1
 
+      - name: Restore xAI refresh token cache
+        if: success()
+        uses: actions/cache/restore@v4
+        with:
+          path: .xai/rt.enc
+          key: xai-rt-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: xai-rt-
+
+      - name: Get xAI access token (SuperGrok OAuth)
+        if: success()
+        env:
+          SECRET_RT: ${{ secrets.XAI_REFRESH_TOKEN }}
+          PASS: ${{ secrets.XAI_CACHE_PASSPHRASE }}
+        run: |
+          set +e
+          mkdir -p .xai
+          try_refresh() {
+            curl -sS -m 30 -X POST https://auth.x.ai/oauth2/token \
+              --data-urlencode grant_type=refresh_token \
+              --data-urlencode client_id=b1a00492-073a-47ea-816f-4c329264a828 \
+              --data-urlencode "refresh_token=$1" -o .xai/resp.json -w '%{http_code}' 2>/dev/null
+          }
+          AT=""; SRC=""
+          if [ -f .xai/rt.enc ] && [ -n "$PASS" ]; then
+            CRT=$(openssl enc -d -aes-256-cbc -pbkdf2 -a -A -pass env:PASS -in .xai/rt.enc 2>/dev/null)
+            if [ -n "$CRT" ]; then
+              echo "::add-mask::$CRT"
+              CODE=$(try_refresh "$CRT")
+              AT=$(jq -r '.access_token // empty' .xai/resp.json 2>/dev/null)
+              if [ "$CODE" = "200" ] && [ -n "$AT" ]; then SRC=cache; else AT=""; echo "Cached refresh token failed (HTTP $CODE), falling back to secret"; fi
+            fi
+          else
+            echo "No cached refresh token found"
+          fi
+          if [ -z "$AT" ] && [ -n "$SECRET_RT" ]; then
+            CODE=$(try_refresh "$SECRET_RT")
+            AT=$(jq -r '.access_token // empty' .xai/resp.json 2>/dev/null)
+            if [ "$CODE" = "200" ] && [ -n "$AT" ]; then SRC=secret; else AT=""; echo "Secret refresh token failed (HTTP $CODE)"; fi
+          fi
+          if [ -z "$AT" ]; then
+            echo "::warning::xAI token refresh failed; running WITHOUT AI digest (raw email still sent)"
+            rm -f .xai/resp.json; exit 0
+          fi
+          echo "::add-mask::$AT"
+          NRT=$(jq -r '.refresh_token // empty' .xai/resp.json)
+          rm -f .xai/resp.json
+          if [ -n "$NRT" ]; then
+            echo "::add-mask::$NRT"
+            printf '%s' "$NRT" | openssl enc -aes-256-cbc -pbkdf2 -a -A -salt -pass env:PASS -out .xai/rt.enc
+            echo "Saved rotated refresh token (encrypted)"
+          fi
+          echo "xAI access token obtained via $SRC refresh token"
+          {
+            echo "AI_API_KEY=$AT"
+            echo "AI_API_BASE=https://api.x.ai/v1"
+            echo "AI_MODEL=openai/grok-4.20-0309-non-reasoning"
+          } >> "$GITHUB_ENV"
+
+      - name: Save xAI refresh token cache
+        if: success() && hashFiles('.xai/rt.enc') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: .xai/rt.enc
+          key: xai-rt-${{ github.run_id }}-${{ github.run_attempt }}
+
       - name: Run crawler
         if: success()
         env:
@@ -124,9 +189,6 @@ jobs:
           GENERIC_WEBHOOK_TEMPLATE: ${{ secrets.GENERIC_WEBHOOK_TEMPLATE }}
           # AI 配置（ai_analysis 和 ai_translation 共享模型配置）
           AI_ANALYSIS_ENABLED: ${{ secrets.AI_ANALYSIS_ENABLED }}
-          AI_API_KEY: ${{ secrets.AI_API_KEY }}
-          AI_MODEL: ${{ secrets.AI_MODEL }}
-          AI_API_BASE: ${{ secrets.AI_API_BASE }}
           # 远程存储配置
           S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
           S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}

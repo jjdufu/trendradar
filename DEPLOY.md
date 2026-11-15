@@ -36,3 +36,11 @@
 - 可选：`AI_ANALYSIS_ENABLED=true` 覆盖配置开关（一般不必设，仓库里已打开分析）
 
 本仓库是公开的，请不要把邮箱密码、API Key 或其他密钥提交到代码里。
+
+## 当前 AI 方案：xAI Grok（SuperGrok 订阅 OAuth，无 API Key）
+
+- Secrets：`XAI_REFRESH_TOKEN`（OAuth refresh token）、`XAI_CACHE_PASSPHRASE`（加密缓存口令）。不要设置 `AI_API_KEY`。
+- 每次运行前，工作流用 refresh token 向 `https://auth.x.ai/oauth2/token` 换取 6 小时有效的 access token，并导出 `AI_API_KEY` / `AI_API_BASE=https://api.x.ai/v1` / `AI_MODEL=openai/grok-4.20-0309-non-reasoning`。
+- 轮换后的新 refresh token 用 openssl（aes-256-cbc + pbkdf2）加密后存进 actions/cache（key `xai-rt-<run_id>-<attempt>`，恢复前缀 `xai-rt-`）。顺序：先用缓存里的 token，失败再用 Secret。
+- 全部刷新失败时只打 warning，照常发送不带速览的原始榜单。
+- 缓存 7 天未访问会被 GitHub 清除；每 3 小时一次的运行会持续刷新它。若缓存与 Secret 都失效，需要重新登录并更新 `XAI_REFRESH_TOKEN`。
