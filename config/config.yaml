@@ -185,9 +185,6 @@ rss:
       name: "X @dril"
       url: "http://localhost:1200/twitter/user/dril/includeRts=0&count=5?limit=5"
 
-    - id: "x-pixelatedboat"
-      name: "X @pixelatedboat"
-      url: "http://localhost:1200/twitter/user/pixelatedboat/includeRts=0&count=5?limit=5"
 
     - id: "x-theonion"
       name: "X @TheOnion"
@@ -218,9 +215,6 @@ rss:
       name: "X @AnthropicAI"
       url: "http://localhost:1200/twitter/user/AnthropicAI/includeRts=0&count=5?limit=5"
 
-    - id: "x-xai"
-      name: "X @xai"
-      url: "http://localhost:1200/twitter/user/xai/includeRts=0&count=5?limit=5"
 
     - id: "x-deepmind"
       name: "X @GoogleDeepMind"
@@ -403,7 +397,6 @@ display:
       - bilibili-popular
       - reddit-memes
       - x-dril
-      - x-pixelatedboat
       - x-theonion
       - x-dog-rates
       - x-popcrave
@@ -411,7 +404,6 @@ display:
       - x-sama
       - x-openai
       - x-anthropic
-      - x-xai
       - x-deepmind
       - x-karpathy
       - x-demishassabis

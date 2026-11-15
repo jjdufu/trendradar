@@ -33,8 +33,8 @@
 - 国内热点：中国大陆社会、时政、民生、文体娱乐等公共话题。
 - 国际热点：海外政治、经济、冲突、国际社会新闻（不含纯科技产品发布）。
 - 科技：互联网、芯片、产品发布、开发者社区、GitHub Trending、Hacker News、Product Hunt、V2EX 等技术向内容。一般性的 AI 新闻热榜也可放这里；但来自 X 上 AI 人物/公司账号的原发帖放到「AI 圈动态」，不要两边重复。
-- 梗与抽象段子：弱智吧、抗压背锅吧、Reddit memes、B 站玩梗视频、X 上的梗号（如 @dril、@pixelatedboat、@TheOnion、@dog_rates），以及其他明显的网络笑话、抽象帖、梗图。若一条既是新闻又在玩梗，按内容主体归类，不要重复出现在两类。
-- AI 圈动态：专门整理 X 上 AI 人物与公司账号的发帖，包括 @elonmusk、@sama、@OpenAI、@AnthropicAI、@xai、@GoogleDeepMind、@karpathy、@demishassabis、@ylecun、@AravSrinivas、@darioamodei、@mustafasuleyman、@deepseek_ai、@Alibaba_Qwen、@MistralAI、@perplexity_ai。写清是谁说了什么、有何进展；同一消息被多人转发或跟帖时合并为一条。
+- 梗与抽象段子：弱智吧、抗压背锅吧、Reddit memes、B 站玩梗视频、X 上的梗号（如 @dril、@TheOnion、@dog_rates），以及其他明显的网络笑话、抽象帖、梗图。若一条既是新闻又在玩梗，按内容主体归类，不要重复出现在两类。
+- AI 圈动态：专门整理 X 上 AI 人物与公司账号的发帖，包括 @elonmusk、@sama、@OpenAI、@AnthropicAI、@GoogleDeepMind、@karpathy、@demishassabis、@ylecun、@AravSrinivas、@darioamodei、@mustafasuleyman、@deepseek_ai、@Alibaba_Qwen、@MistralAI、@perplexity_ai。写清是谁说了什么、有何进展；同一消息被多人转发或跟帖时合并为一条。
 
 ## 写法
 - 用「」引用话题或原标题，不要用 Markdown，不要用 emoji。
