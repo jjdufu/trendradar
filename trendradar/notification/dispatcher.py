@@ -352,13 +352,15 @@ class NotificationDispatcher:
                 ai_analysis, display_regions, standalone_data
             )
 
-        # 邮件（保持原有逻辑，已支持多收件人，AI 分析已嵌入 HTML）
+        # 邮件：使用单独的自适应速览模板（非网页版报告）
         if (
             self.config.get("EMAIL_FROM")
             and self.config.get("EMAIL_PASSWORD")
             and self.config.get("EMAIL_TO")
         ):
-            results["email"] = self._send_email(report_type, html_file_path)
+            results["email"] = self._send_email(
+                report_type, html_file_path, ai_analysis, standalone_data
+            )
 
         return results
 
@@ -814,18 +816,33 @@ class NotificationDispatcher:
         self,
         report_type: str,
         html_file_path: Optional[str],
+        ai_analysis=None,
+        standalone_data=None,
     ) -> bool:
-        """发送邮件（保持原有逻辑，已支持多收件人）
+        """发送邮件：渲染自适应速览 HTML，而不是整页网页报告。"""
+        from pathlib import Path as _Path
+        from trendradar.report.email_html import write_email_html
 
-        Note:
-            AI 分析内容已在 HTML 生成时嵌入，无需在此传递
-        """
+        when = self.get_time_func() if self.get_time_func else None
+        if html_file_path:
+            src = _Path(html_file_path)
+            email_path = src.parent / f"email_{src.name}"
+        else:
+            email_path = _Path("output/html/email_latest.html")
+        write_email_html(
+            email_path,
+            report_type=report_type,
+            generated_at=when,
+            ai_analysis=ai_analysis,
+            standalone_data=standalone_data,
+        )
+        print(f"邮件 HTML 已生成: {email_path}")
         return send_to_email(
             from_email=self.config["EMAIL_FROM"],
             password=self.config["EMAIL_PASSWORD"],
             to_email=self.config["EMAIL_TO"],
             report_type=report_type,
-            html_file_path=html_file_path,
+            html_file_path=str(email_path),
             custom_smtp_server=self.config.get("EMAIL_SMTP_SERVER", ""),
             custom_smtp_port=self.config.get("EMAIL_SMTP_PORT", ""),
             get_time_func=self.get_time_func,
