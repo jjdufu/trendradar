@@ -44,3 +44,8 @@
 - 轮换后的新 refresh token 用 openssl（aes-256-cbc + pbkdf2）加密后存进 actions/cache（key `xai-rt-<run_id>-<attempt>`，恢复前缀 `xai-rt-`）。顺序：先用缓存里的 token，失败再用 Secret。
 - 全部刷新失败时只打 warning，照常发送不带速览的原始榜单。
 - 缓存 7 天未访问会被 GitHub 清除；每 3 小时一次的运行会持续刷新它。若缓存与 Secret 都失效，需要重新登录并更新 `XAI_REFRESH_TOKEN`。
+
+## X/Twitter 源
+
+- Secret：`TWITTER_AUTH_TOKEN`（X 网页登录后的 `auth_token` cookie）。只注入 RSSHub 服务容器，不要写进仓库或打印到日志。
+- 路由：`/twitter/user/<handle>`（见 https://docs.rsshub.app/routes/twitter），每源最多 8 条，排除转推，RSS 请求间隔 3 秒。配合 3 小时一次的定时，降低对账号的压力。

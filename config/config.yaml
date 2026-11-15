@@ -179,6 +179,28 @@ rss:
       name: "Reddit r/memes"
       url: "https://www.reddit.com/r/memes/top/.rss?t=day"
 
+    # X/Twitter via in-job RSSHub（/twitter/user/:id，文档：https://docs.rsshub.app/routes/twitter）
+    # includeRts=0、count/limit=8，降低对账号的请求压力；工作流每 3 小时跑一次
+    - id: "x-dril"
+      name: "X @dril"
+      url: "http://localhost:1200/twitter/user/dril/includeRts=0&count=8?limit=8"
+
+    - id: "x-pixelatedboat"
+      name: "X @pixelatedboat"
+      url: "http://localhost:1200/twitter/user/pixelatedboat/includeRts=0&count=8?limit=8"
+
+    - id: "x-theonion"
+      name: "X @TheOnion"
+      url: "http://localhost:1200/twitter/user/TheOnion/includeRts=0&count=8?limit=8"
+
+    - id: "x-dog-rates"
+      name: "X @dog_rates"
+      url: "http://localhost:1200/twitter/user/dog_rates/includeRts=0&count=8?limit=8"
+
+    - id: "x-popcrave"
+      name: "X @PopCrave"
+      url: "http://localhost:1200/twitter/user/PopCrave/includeRts=0&count=8?limit=8"
+
     - id: "ruanyifeng"
       name: "阮一峰的网络日志"
       url: "http://www.ruanyifeng.com/blog/atom.xml"
@@ -315,6 +337,11 @@ display:
       - bilibili-weekly
       - bilibili-popular
       - reddit-memes
+      - x-dril
+      - x-pixelatedboat
+      - x-theonion
+      - x-dog-rates
+      - x-popcrave
     max_items: 8                                 # 每个源最多展示条数，邮件附录保持精简
 
 
@@ -540,10 +567,10 @@ advanced:
     use_proxy: false                  # 是否启用代理（true=启用, false=不使用）
     default_proxy: "http://127.0.0.1:10801"
 
-  # RSS 设置
+  # RSS 设置（间隔加长，减轻 X/Twitter 等源对账号的压力）
   rss:
-    request_interval: 1000            # 请求间隔（毫秒）
-    timeout: 15                       # 请求超时（秒）
+    request_interval: 3000            # 请求间隔（毫秒）
+    timeout: 25                       # 请求超时（秒）；Twitter 路由可能较慢
     use_proxy: false                  # 是否使用代理（true=启用, false=不使用）
     proxy_url: ""                     # RSS 专属代理（留空则使用 crawler.default_proxy）
 
