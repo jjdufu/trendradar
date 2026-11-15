@@ -179,10 +179,6 @@ rss:
       name: "Reddit r/memes"
       url: "https://www.reddit.com/r/memes/top/.rss?t=day"
 
-    - id: "reddit-programmerhumor"
-      name: "Reddit r/ProgrammerHumor"
-      url: "https://www.reddit.com/r/ProgrammerHumor/top/.rss?t=day"
-
     - id: "ruanyifeng"
       name: "阮一峰的网络日志"
       url: "http://www.ruanyifeng.com/blog/atom.xml"
@@ -319,7 +315,6 @@ display:
       - bilibili-weekly
       - bilibili-popular
       - reddit-memes
-      - reddit-programmerhumor
     max_items: 12                                # 每个源最多展示条数（0=不限制）
 
 
