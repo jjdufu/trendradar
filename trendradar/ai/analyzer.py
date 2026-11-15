@@ -162,7 +162,8 @@ class AIAnalyzer:
         if not self.client.api_key:
             return AIAnalysisResult(
                 success=False,
-                error="未配置 AI API Key，请在 config.yaml 或环境变量 AI_API_KEY 中设置"
+                skipped=True,
+                error="未配置 AI API Key，请在 GitHub Secrets 中设置 AI_API_KEY（可选 AI_MODEL、AI_API_BASE）后即可生成速览",
             )
 
         # 准备新闻内容并获取统计数据
