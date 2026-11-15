@@ -41,6 +41,13 @@ class AIAnalysisResult:
     rss_insights: str = ""               # RSS 深度洞察
     outlook_strategy: str = ""           # 研判与策略建议
     standalone_summaries: Dict[str, str] = field(default_factory=dict)  # 独立展示区概括 {源ID: 概括}
+    # 邮件 Tab 模板扩展字段（同一轮分析一次生成）
+    sixty: str = ""                      # 每天60秒读懂世界
+    baidu: str = ""                      # 百度热点
+    politics: str = ""                   # 时政
+    github: str = ""                     # GitHub 每日热门一行说明
+    x_hot: str = ""                      # X 平台热点
+    tiktok: str = ""                     # TikTok 海外热点
 
     # 基础元数据
     raw_response: str = ""               # 原始响应
@@ -533,6 +540,12 @@ class AIAnalyzer:
                 if count > 1:
                     line += f" | 出现:{count}次"
 
+                extra = item.get("extra") or {}
+                if extra.get("info"):
+                    line += f" | {extra['info']}"
+                if extra.get("hover"):
+                    line += f" | 简介:{extra['hover']}"
+
                 # 排名轨迹（如果启用）
                 if self.include_rank_timeline:
                     rank_timeline = item.get("rank_timeline", [])
@@ -561,6 +574,11 @@ class AIAnalyzer:
                 published_at = item.get("published_at", "")
                 if published_at:
                     line += f" | {published_at}"
+                extra = item.get("extra") or {}
+                if extra.get("info"):
+                    line += f" | {extra['info']}"
+                elif extra.get("hover"):
+                    line += f" | {extra['hover']}"
 
                 lines.append(line)
             lines.append("")
@@ -645,6 +663,12 @@ class AIAnalyzer:
             result.signals = _coerce_analysis_text(data.get("signals", ""))
             result.rss_insights = _coerce_analysis_text(data.get("rss_insights", ""))
             result.outlook_strategy = _coerce_analysis_text(data.get("outlook_strategy", ""))
+            result.sixty = _coerce_analysis_text(data.get("sixty", ""))
+            result.baidu = _coerce_analysis_text(data.get("baidu", ""))
+            result.politics = _coerce_analysis_text(data.get("politics", ""))
+            result.github = _coerce_analysis_text(data.get("github", data.get("github_digest", "")))
+            result.x_hot = _coerce_analysis_text(data.get("x_hot", data.get("x", "")))
+            result.tiktok = _coerce_analysis_text(data.get("tiktok", ""))
 
             # 解析独立展示区概括
             summaries = data.get("standalone_summaries", {})

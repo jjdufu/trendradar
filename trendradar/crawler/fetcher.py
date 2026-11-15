@@ -218,6 +218,7 @@ class DataFetcher:
                                 "ranks": [index],
                                 "url": url,
                                 "mobileUrl": mobile_url,
+                                "extra": item.get("extra") or {},
                             }
                 except json.JSONDecodeError:
                     print(f"解析 {id_value} 响应失败")

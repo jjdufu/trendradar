@@ -2,7 +2,7 @@
 
 基于 [sansan0/TrendRadar](https://github.com/sansan0/TrendRadar) 的 GitHub Actions 部署：每 3 小时抓取国内外热榜，并在同一任务里启动 RSSHub 抓取梗/段子源，合并进一份报告。配置了邮件渠道后会发送 HTML 报告。
 
-邮件使用单独的自适应速览模板（宽 100%、最大 680px 居中，15px/1.5 行高的高密度排版），先是 AI 本期速览（国内热点 / 国际热点 / 科技 / 梗与抽象段子 / AI 圈动态），文末附每源前 3 条原文链接。未生成速览时仍发送精简原文列表。网页版 HTML 报告不变。
+邮件使用自适应 Tab 速览模板（宽 100%、最大 680px 居中，15px/1.5 行高）：顶部两行锚点胶囊可跳转到各栏（QQ 邮箱以跳转+全部叠放为主），先是「每天60秒读懂世界」，再按栏展示 GitHub 每日热门（含今日星标与中文一行）、X 平台热点、抽象段子、TikTok 热点、百度、国内、国际、时政、AI 圈动态、科技。60 秒摘要与各栏一行说明由同一次 AI 调用生成。未生成速览时各栏仍尽量展示原文标题。网页版 HTML 报告不变。
 
 ## 调度
 
@@ -48,4 +48,10 @@
 ## X/Twitter 源
 
 - Secret：`TWITTER_AUTH_TOKEN`（X 网页登录后的 `auth_token` cookie）。只注入 RSSHub 服务容器，不要写进仓库或打印到日志。
-- 路由：`/twitter/user/<handle>`（见 https://docs.rsshub.app/routes/twitter）。包含梗号（dril、TheOnion、dog_rates、PopCrave）以及 Elon Musk 与主要 AI 人物/公司账号。试跑后已去掉 RSSHub 返回空源的 @pixelatedboat、@xai（503 this route is empty，非 token 或限流问题）。每源最多 5 条、排除转推，RSS 请求间隔 5 秒，配合 3 小时一次的定时，降低对账号的限流风险。
+- 路由：`/twitter/user/<handle>`（见 https://docs.rsshub.app/routes/twitter）。包含已核实的梗/搞笑号（PicturesFoIder、HumansNoContext、nocontextmemes、historyinmemes、WholesomeMeme、vidsthatgohard、9GAG、NoContextBrits、Dexerto、TheBabylonBee、aiyutoushushu、xiaosangawa）以及 PopCrave、Elon Musk 与主要 AI 人物/公司账号。已去掉低频或不活跃的 @dril、@TheOnion、@dog_rates，以及此前空源的 @pixelatedboat、@xai。每源最多 5 条、排除转推，RSS 请求间隔 5 秒，配合 3 小时一次的定时，降低对账号的限流风险。
+
+## TikTok 海外热点
+
+- 来源：TikTok Creative Center 公开接口 `POST https://ads.tiktok.com/CreativeOne/KnowledgeAPI/GetHashtagList`（无需登录）。匿名请求每个国家最多返回 3 条标签，因此默认查询 US/GB/CA/AU/DE/FR/JP/KR/BR/MX 并按标签去重，写入独立展示区「TikTok 海外热点」。
+- 旧版 `creative_radar_api` 已 deprecated / 匿名 40101；RSSHub 仅有需反爬的用户主页路由、没有可用的标签/热榜路由；newsnow 无 tiktok 源。视频榜 `CreativeCenterGetTopContentsList` 在未登录时大约只能拿到 4 条且偏带货，故未采用。
+- 配置见 `tiktok_trends`；抓取失败只打日志并跳过该栏，不影响其余邮件。GitHub Actions 若被 TikTok 拒绝数据中心 IP，该栏可能为空。

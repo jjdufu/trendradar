@@ -593,6 +593,7 @@ class NewsAnalyzer:
                     "last_time": meta.get("last_time", ""),
                     "count": meta.get("count", 1),
                     "rank_timeline": meta.get("rank_timeline", []),
+                    "extra": title_data.get("extra") or {},
                 }
                 items.append(item)
 
@@ -642,6 +643,21 @@ class NewsAnalyzer:
                             "name": feed_data["name"],
                             "items": items,
                         })
+
+        # TikTok 海外热点（Creative Center 公开标签榜，失败则跳过）
+        try:
+            from pathlib import Path as _CfgPath
+            import yaml as _yaml
+            from trendradar.crawler.tiktok_trends import fetch_from_config as _fetch_tiktok
+            raw_cfg = {}
+            cfg_file = _CfgPath("config/config.yaml")
+            if cfg_file.exists():
+                raw_cfg = _yaml.safe_load(cfg_file.read_text(encoding="utf-8")) or {}
+            tt_feed = _fetch_tiktok(raw_cfg)
+            if tt_feed:
+                standalone_data["rss_feeds"].append(tt_feed)
+        except Exception as exc:
+            print(f"[TikTok] 注入独立展示区失败: {type(exc).__name__}: {exc}")
 
         # 如果没有任何数据，返回 None
         if not standalone_data["platforms"] and not standalone_data["rss_feeds"]:

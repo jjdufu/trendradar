@@ -181,18 +181,54 @@ rss:
 
     # X/Twitter via in-job RSSHub（/twitter/user/:id，文档：https://docs.rsshub.app/routes/twitter）
     # includeRts=0、count/limit=5，拉长间隔以降低对账号的请求压力；工作流每 3 小时跑一次
-    - id: "x-dril"
-      name: "X @dril"
-      url: "http://localhost:1200/twitter/user/dril/includeRts=0&count=5?limit=5"
+    # 梗/搞笑号（已核实近 48 小时有更新）；已去掉低频的 dril / TheOnion / dog_rates
+    - id: "x-picturesfolder"
+      name: "X @PicturesFoIder"
+      url: "http://localhost:1200/twitter/user/PicturesFoIder/includeRts=0&count=5?limit=5"
 
+    - id: "x-humansnocontext"
+      name: "X @HumansNoContext"
+      url: "http://localhost:1200/twitter/user/HumansNoContext/includeRts=0&count=5?limit=5"
 
-    - id: "x-theonion"
-      name: "X @TheOnion"
-      url: "http://localhost:1200/twitter/user/TheOnion/includeRts=0&count=5?limit=5"
+    - id: "x-nocontextmemes"
+      name: "X @nocontextmemes"
+      url: "http://localhost:1200/twitter/user/nocontextmemes/includeRts=0&count=5?limit=5"
 
-    - id: "x-dog-rates"
-      name: "X @dog_rates"
-      url: "http://localhost:1200/twitter/user/dog_rates/includeRts=0&count=5?limit=5"
+    - id: "x-historyinmemes"
+      name: "X @historyinmemes"
+      url: "http://localhost:1200/twitter/user/historyinmemes/includeRts=0&count=5?limit=5"
+
+    - id: "x-wholesomememe"
+      name: "X @WholesomeMeme"
+      url: "http://localhost:1200/twitter/user/WholesomeMeme/includeRts=0&count=5?limit=5"
+
+    - id: "x-vidsthatgohard"
+      name: "X @vidsthatgohard"
+      url: "http://localhost:1200/twitter/user/vidsthatgohard/includeRts=0&count=5?limit=5"
+
+    - id: "x-9gag"
+      name: "X @9GAG"
+      url: "http://localhost:1200/twitter/user/9GAG/includeRts=0&count=5?limit=5"
+
+    - id: "x-nocontextbrits"
+      name: "X @NoContextBrits"
+      url: "http://localhost:1200/twitter/user/NoContextBrits/includeRts=0&count=5?limit=5"
+
+    - id: "x-dexerto"
+      name: "X @Dexerto"
+      url: "http://localhost:1200/twitter/user/Dexerto/includeRts=0&count=5?limit=5"
+
+    - id: "x-babylonbee"
+      name: "X @TheBabylonBee"
+      url: "http://localhost:1200/twitter/user/TheBabylonBee/includeRts=0&count=5?limit=5"
+
+    - id: "x-aiyutoushushu"
+      name: "X @aiyutoushushu"
+      url: "http://localhost:1200/twitter/user/aiyutoushushu/includeRts=0&count=5?limit=5"
+
+    - id: "x-xiaosangawa"
+      name: "X @xiaosangawa"
+      url: "http://localhost:1200/twitter/user/xiaosangawa/includeRts=0&count=5?limit=5"
 
     - id: "x-popcrave"
       name: "X @PopCrave"
@@ -396,9 +432,18 @@ display:
       - bilibili-weekly
       - bilibili-popular
       - reddit-memes
-      - x-dril
-      - x-theonion
-      - x-dog-rates
+      - x-picturesfolder
+      - x-humansnocontext
+      - x-nocontextmemes
+      - x-historyinmemes
+      - x-wholesomememe
+      - x-vidsthatgohard
+      - x-9gag
+      - x-nocontextbrits
+      - x-dexerto
+      - x-babylonbee
+      - x-aiyutoushushu
+      - x-xiaosangawa
       - x-popcrave
       - x-elonmusk
       - x-sama
@@ -561,7 +606,7 @@ ai:
   temperature: 1.0                  # 采样温度 (0.0-2.0)
                                     # 注意：部分模型(如 gpt-5)可能要求必须为 1.0，否则会报错
   
-  max_tokens: 8000                  # 最大生成 token 数
+  max_tokens: 10000                  # 最大生成 token 数
                                     # 注意：如果 API 不支持此参数(报 HTTP 400)，请设为 0 以禁用发送
   # 高级选项
   num_retries: 1                    # 失败重试次数
@@ -667,3 +712,19 @@ advanced:
     slack: 4000
   batch_send_interval: 3              # 批次发送间隔（秒）
   feishu_message_separator: "━━━━━━━━━━━━━━━━"
+
+# TikTok 海外热点：Creative Center 公开标签榜（无需登录，匿名每国最多 3 条）
+tiktok_trends:
+  enabled: true
+  time_range: 7
+  countries:
+    - US
+    - GB
+    - CA
+    - AU
+    - DE
+    - FR
+    - JP
+    - KR
+    - BR
+    - MX
